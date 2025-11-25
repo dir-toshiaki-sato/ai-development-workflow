@@ -31,7 +31,7 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_args: |
             --model claude-sonnet-4-5
-            --allowedTools "mcp__github__*,Read,Grep,Glob,WebSearch,LS,Edit,Bash(npm:*)"
+            --allowedTools "mcp__github,Read,Grep,Glob,WebSearch,LS,Edit,Bash(npm:*)"
           trigger_phrase: "/claude"
           assignee_trigger: "claude"
           label_trigger: "claude"
