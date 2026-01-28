@@ -123,6 +123,7 @@ export default function TetrisPage() {
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const gameLoopRef = useRef<NodeJS.Timeout | null>(null);
+  const moveDownRef = useRef<() => void>();
 
   // 衝突判定
   const checkCollision = useCallback(
@@ -151,7 +152,7 @@ export default function TetrisPage() {
 
   // ラインクリア判定
   const clearLines = useCallback((currentBoard: number[][]): { newBoard: number[][]; linesCleared: number } => {
-    const newBoard = [...currentBoard];
+    const newBoard = currentBoard.map(row => [...row]);
     let linesCleared = 0;
 
     for (let row = BOARD_HEIGHT - 1; row >= 0; row--) {
@@ -187,8 +188,9 @@ export default function TetrisPage() {
     setScore((prev) => prev + linesCleared * 100);
 
     // 新しいテトリミノ
+    const newNext = createRandomTetromino();
     setCurrentTetromino(nextTetromino);
-    setNextTetromino(createRandomTetromino());
+    setNextTetromino(newNext);
     setCurrentPosition({ x: 3, y: 0 });
 
     // ゲームオーバー判定
@@ -263,6 +265,15 @@ export default function TetrisPage() {
 
   // ゲームループ
   useEffect(() => {
+    moveDownRef.current = () => {
+      const moved = moveTetromino(0, 1);
+      if (!moved) {
+        lockTetromino();
+      }
+    };
+  }, [moveTetromino, lockTetromino]);
+
+  useEffect(() => {
     if (gameOver || isPaused) {
       if (gameLoopRef.current) {
         clearInterval(gameLoopRef.current);
@@ -272,10 +283,7 @@ export default function TetrisPage() {
     }
 
     gameLoopRef.current = setInterval(() => {
-      const moved = moveTetromino(0, 1);
-      if (!moved) {
-        lockTetromino();
-      }
+      moveDownRef.current?.();
     }, 1000);
 
     return () => {
@@ -283,7 +291,7 @@ export default function TetrisPage() {
         clearInterval(gameLoopRef.current);
       }
     };
-  }, [gameOver, isPaused, moveTetromino, lockTetromino]);
+  }, [gameOver, isPaused]);
 
   // ボードを描画用に結合
   const displayBoard = board.map((row) => [...row]);
